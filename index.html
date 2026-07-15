@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"><title>Smart Laptop Finder</title>
+    <style>
+        :root { --bg: #05070c; --card: rgba(17,24,43,0.7); --border: rgba(255,255,255,0.06); --cyan: #00f2fe; --green: #00e676; --text: #f8fafc; --text-sec: #94a3b8; }
+        body { background: var(--bg); color: var(--text); padding: 1.5rem; font-family: system-ui, sans-serif; background-image: radial-gradient(circle at 5% 5%, rgba(0,242,254,0.08) 0%, transparent 35%); }
+        header { display: flex; justify-content: space-between; align-items: center; max-width: 1100px; margin: 0 auto 2rem auto; }
+        .logo { font-size: 1.6rem; font-weight: 800; background: linear-gradient(135deg,#00f2fe,#8e2de2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .grid { display: grid; grid-template-columns: 320px 1fr; gap: 2rem; max-width: 1100px; margin: 0 auto; }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; backdrop-filter: blur(10px); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .control-group { margin-bottom: 1.25rem; }
+        label { display: block; font-size: 0.75rem; color: var(--text-sec); margin-bottom: 0.4rem; font-weight: 700; text-transform: uppercase; }
+        input[type="range"], select, input[type="text"] { width: 100%; padding: 0.7rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 8px; color: #fff; outline: none; }
+        .pills, .pills-3 { display: grid; gap: 0.4rem; }
+        .pills { grid-template-columns: 1fr 1fr; }
+        .pills-3 { grid-template-columns: repeat(3, 1fr); }
+        .pill { padding: 0.5rem; border-radius: 8px; border: 1px solid var(--border); background: rgba(255,255,255,0.01); cursor: pointer; font-size: 0.75rem; text-align: center; }
+        .pill.active { background: var(--cyan); color: #000; border-color: transparent; font-weight: 700; }
+        .tag-shortcut { font-size: 0.7rem; background: rgba(255,255,255,0.03); border: 1px solid var(--border); padding: 0.2rem 0.4rem; border-radius: 4px; cursor: pointer; color: var(--text-sec); display: inline-block; margin-top: 0.3rem; transition: 0.1s; }
+        .tag-shortcut:hover, .tag-shortcut.active { background: var(--cyan); color: #000; border-color: transparent; font-weight: 700; }
+        .rec-card { border-left: 5px solid var(--cyan); margin-bottom: 1.5rem; }
+        .rec-card.runner { border-left-color: #8e2de2; }
+        .price-box { background: rgba(0,0,0,0.25); border: 1px solid var(--border); border-radius: 10px; padding: 1rem; margin: 0.8rem 0; }
+        .store-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.4rem; margin-top: 0.6rem; }
+        .store-pill { text-align: center; font-size: 0.7rem; background: rgba(255,255,255,0.02); border: 1px solid var(--border); padding: 0.5rem; border-radius: 6px; cursor: pointer; display: flex; flex-direction: column; }
+        .store-pill.best { border-color: var(--green); background: rgba(0,230,118,0.05); color: var(--green); font-weight: 700; }
+        .specs { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.8rem; font-size: 0.75rem; }
+        .spec-item { color: var(--text-sec); border-left: 2px solid rgba(255,255,255,0.05); padding-left: 0.4rem; }
+        .spec-item span { color: var(--text); font-weight: 600; display: block; margin-top: 0.1rem; }
+        .sync-btn { background: rgba(0,242,254,0.1); border: 1px solid rgba(0,242,254,0.3); color: var(--cyan); padding: 0.4rem 0.8rem; border-radius: 20px; font-size: 0.75rem; font-weight: 700; cursor: pointer; }
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(5,7,12,0.85); backdrop-filter: blur(5px); display: none; align-items: center; justify-content: center; z-index: 99; }
+        .modal.active { display: flex; }
+        .modal-content { background: #0d1222; border: 1px solid var(--border); border-radius: 16px; width: 90%; max-width: 400px; padding: 1.5rem; position: relative; }
+        .offer-row { border-left: 3px solid var(--cyan); padding-left: 0.5rem; margin: 0.8rem 0; font-size: 0.8rem; background: rgba(0,242,254,0.02); padding: 0.5rem; border-radius: 4px; }
+        @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">Smart Laptop Finder</div>
+        <button class="sync-btn" id="sync-btn">↻ Sync Live Prices</button>
+    </header>
+    <div class="grid">
+        <div class="card" style="height: fit-content;">
+            <div class="control-group">
+                <label>Budget: <span id="budget-lbl" style="color: var(--cyan); float: right; font-weight: 800;">₹75,000</span></label>
+                <input type="range" id="budget" min="25000" max="350000" step="5000" value="75000">
+            </div>
+            <div class="control-group">
+                <label>Workload</label>
+                <div class="pills" id="usecase-container">
+                    <div class="pill active" data-value="coding">💻 Coding</div>
+                    <div class="pill" data-value="gaming">🎮 Gaming</div>
+                    <div class="pill" data-value="creator">🎨 Creator</div>
+                    <div class="pill" data-value="office">💼 Business</div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Search specifications</label>
+                <input type="text" id="search" placeholder="Type spec details...">
+                <div style="display: flex; flex-wrap: wrap; gap: 0.3rem; margin-top: 0.4rem;" id="quick-tags">
+                    <span class="tag-shortcut" data-value="Ryzen">Ryzen</span>
+                    <span class="tag-shortcut" data-value="Intel">Intel</span>
+                    <span class="tag-shortcut" data-value="OLED">OLED</span>
+                    <span class="tag-shortcut" data-value="16GB">16GB RAM</span>
+                    <span class="tag-shortcut" data-value="1TB">1TB SSD</span>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Brand</label>
+                <div class="pills-3" id="brand-container">
+                    <div class="pill active" data-value="no-pref">All</div>
+                    <div class="pill" data-value="apple">Apple</div>
+                    <div class="pill" data-value="asus">ASUS</div>
+                    <div class="pill" data-value="lenovo">Lenovo</div>
+                    <div class="pill" data-value="hp">HP</div>
+                    <div class="pill" data-value="dell">Dell</div>
+                    <div class="pill" data-value="acer">Acer</div>
+                    <div class="pill" data-value="xiaomi">Xiaomi</div>
+                    <div class="pill" data-value="microsoft">Microsoft</div>
+                </div>
+            </div>
+            <div class="control-group">
+                <label>Top Priority</label>
+                <div class="pills" id="priority-container">
+                    <div class="pill active" data-value="none">Balanced</div>
+                    <div class="pill" data-value="perf">🚀 Perf</div>
+                    <div class="pill" data-value="batt">🔋 Battery</div>
+                    <div class="pill" data-value="port">✈️ Port</div>
+                    <div class="pill" data-value="disp">🖥️ Display</div>
+                </div>
+            </div>
+        </div>
+        <div id="results"></div>
+    </div>
+    <div class="modal" id="modal"><div class="modal-content"><span style="position: absolute; right: 1rem; top: 0.5rem; cursor: pointer; font-size: 1.5rem;" onclick="closeModal()">&times;</span><h3 id="m-store" style="color: var(--cyan); margin-bottom: 0.5rem;">Store</h3><h4 id="m-laptop" style="font-size: 0.9rem; margin-bottom: 0.5rem;">Laptop</h4><div id="m-price" style="font-weight: 850; color: var(--green); font-size: 1.3rem;">₹0</div><div class="offer-row"><strong>Bank Offer:</strong> <span id="m-offer"></span></div><div style="font-size: 0.8rem; line-height: 1.5;"><p>Delivery: <span id="m-delivery"></span></p><p>Rating: <span id="m-rating"></span></p></div></div></div>
+    <script>
+        const catalog = [
+            { id: "aspire", name: "Acer Aspire Lite", brand: "Acer", prices: { amazon: 29990, flipkart: 28990, croma: 30990, reliance: 29490, tatacliq: 30490, vijaysales: 29900 }, specs: { cpu: "i3-1215U", ram: "8GB", storage: "512GB", display: "15.6\" FHD", battery: "6 Hrs", weight: "1.59kg" }, useCases: ["office"], keywords: ["budget", "cheap", "basic"] },
+            { id: "ideapad", name: "Lenovo IdeaPad Slim 3", brand: "Lenovo", prices: { amazon: 35990, flipkart: 34990, croma: 36990, reliance: 35490, tatacliq: 36290, vijaysales: 35990 }, specs: { cpu: "i3-1215U", ram: "8GB", storage: "512GB", display: "15.6\" FHD", battery: "7 Hrs", weight: "1.62kg" }, useCases: ["office"], keywords: ["budget", "student", "lenovo"] },
+            { id: "hp-15s", name: "HP Laptop 15s", brand: "HP", prices: { amazon: 39990, flipkart: 37990, croma: 38990, reliance: 38490, tatacliq: 38990, vijaysales: 39490 }, specs: { cpu: "Ryzen 3 5300U", ram: "8GB", storage: "512GB", display: "15.6\" FHD", battery: "7.5 Hrs", weight: "1.69kg" }, useCases: ["office"], keywords: ["hp", "ryzen", "basic"] },
+            { id: "redmibook", name: "Xiaomi RedmiBook Pro 15", brand: "Xiaomi", prices: { amazon: 46990, flipkart: 45990, croma: 47990, reliance: 46490, tatacliq: 47490, vijaysales: 46900 }, specs: { cpu: "i5-12450H", ram: "16GB", storage: "512GB", display: "15.6\" 3.2K", battery: "9 Hrs", weight: "1.8kg" }, useCases: ["coding", "office"], keywords: ["xiaomi", "high-res", "coding"] },
+            { id: "vivobook", name: "ASUS Vivobook 15 OLED", brand: "ASUS", prices: { amazon: 53990, flipkart: 52990, croma: 54990, reliance: 55990, tatacliq: 54290, vijaysales: 53490 }, specs: { cpu: "i5-1335U", ram: "16GB", storage: "512GB", display: "15.6\" OLED", battery: "8 Hrs", weight: "1.7kg" }, useCases: ["creator", "office"], keywords: ["oled", "display", "photoshop", "screen"] },
+            { id: "swift", name: "Acer Swift Go 14 OLED", brand: "Acer", prices: { amazon: 58990, flipkart: 57990, croma: 59990, reliance: 59490, tatacliq: 59190, vijaysales: 58490 }, specs: { cpu: "i5-13500H", ram: "16GB", storage: "512GB", display: "14\" OLED", battery: "9.5 Hrs", weight: "1.25kg" }, useCases: ["coding", "creator"], keywords: ["thin", "coding", "python", "battery"] },
+            { id: "cyborg", name: "MSI Cyborg 15", brand: "MSI", prices: { amazon: 63990, flipkart: 62990, croma: 64990, reliance: 63490, tatacliq: 64100, vijaysales: 63900 }, specs: { cpu: "i5-12450H", ram: "8GB", storage: "512GB", display: "15.6\" 144Hz", battery: "4 Hrs", weight: "1.98kg" }, useCases: ["gaming"], keywords: ["gaming", "rtx 4050", "nvidia", "msi"] },
+            { id: "victus", name: "HP Victus 16", brand: "HP", prices: { amazon: 68990, flipkart: 67990, croma: 69990, reliance: 68490, tatacliq: 69290, vijaysales: 68900 }, specs: { cpu: "Ryzen 5 5600H", ram: "16GB", storage: "512GB", display: "16.1\" 144Hz", battery: "5.5 Hrs", weight: "2.46kg" }, useCases: ["gaming"], keywords: ["hp", "victus", "gaming", "3050"] },
+            { id: "pavilion", name: "HP Pavilion Plus 14", brand: "HP", prices: { amazon: 71990, flipkart: 73990, croma: 72990, reliance: 71490, tatacliq: 72990, vijaysales: 72490 }, specs: { cpu: "i5-1340P", ram: "16GB", storage: "512GB", display: "14\" OLED", battery: "8 Hrs", weight: "1.4kg" }, useCases: ["office", "coding"], keywords: ["pavilion", "premium", "student"] },
+            { id: "tuf", name: "ASUS TUF Gaming F15", brand: "ASUS", prices: { amazon: 73990, flipkart: 71990, croma: 74990, reliance: 73490, tatacliq: 74190, vijaysales: 73900 }, specs: { cpu: "i5-12500H", ram: "16GB", storage: "512GB", display: "15.6\" 144Hz", battery: "6 Hrs", weight: "2.2kg" }, useCases: ["gaming", "coding"], keywords: ["tuf", "gaming", "durable"] },
+            { id: "dell-g15", name: "Dell G15 Gaming", brand: "Dell", prices: { amazon: 78990, flipkart: 77990, croma: 79990, reliance: 78490, tatacliq: 79490, vijaysales: 78990 }, specs: { cpu: "Core i5-13450HX", ram: "16GB", storage: "1TB", display: "15.6\" 120Hz", battery: "5 Hrs", weight: "2.65kg" }, useCases: ["gaming", "coding"], keywords: ["gaming", "gpu", "rtx", "dell"] },
+            { id: "air-m2", name: "Apple MacBook Air M2", brand: "Apple", prices: { amazon: 84900, flipkart: 82900, croma: 85900, reliance: 84900, tatacliq: 84400, vijaysales: 83900 }, specs: { cpu: "M2 Chip", ram: "8GB", storage: "256GB", display: "13.6\" Retina", battery: "18 Hrs", weight: "1.24kg" }, useCases: ["office"], keywords: ["macbook", "air", "m2", "battery"] },
+            { id: "legion", name: "Lenovo Legion 5 AMD", brand: "Lenovo", prices: { amazon: 108990, flipkart: 106990, croma: 109990, reliance: 107990, tatacliq: 109190, vijaysales: 108490 }, specs: { cpu: "Ryzen 7 6800H", ram: "16GB", storage: "512GB", display: "15.6\" 165Hz", battery: "6 Hrs", weight: "2.4kg" }, useCases: ["gaming", "creator"], keywords: ["legion", "gaming", "rtx 3060"] },
+            { id: "surface", name: "Microsoft Surface Laptop 5", brand: "Microsoft", prices: { amazon: 105990, flipkart: 104990, croma: 107990, reliance: 106490, tatacliq: 107290, vijaysales: 107900 }, specs: { cpu: "i5-1235U", ram: "8GB", storage: "512GB", display: "13.5\" Touch", battery: "15 Hrs", weight: "1.27kg" }, useCases: ["office"], keywords: ["surface", "touch", "stylus"] },
+            { id: "yoga", name: "Lenovo Yoga Slim 7x", brand: "Lenovo", prices: { amazon: 112990, flipkart: 110990, croma: 114990, reliance: 113490, tatacliq: 113195, vijaysales: 112490 }, specs: { cpu: "Snapdragon X Elite", ram: "16GB", storage: "512GB", display: "14.5\" 3K Touch", battery: "22 Hrs", weight: "1.28kg" }, useCases: ["office", "coding"], keywords: ["snapdragon", "arm", "copilot", "battery"] },
+            { id: "framework", name: "Framework Laptop 13", brand: "Framework", prices: { amazon: 118990, flipkart: 117990, croma: 119990, reliance: 119490, tatacliq: 118900, vijaysales: 118490 }, specs: { cpu: "Core Ultra 5 125H", ram: "16GB", storage: "512GB", display: "13.5\" 120Hz", battery: "11 Hrs", weight: "1.3kg" }, useCases: ["coding", "office"], keywords: ["modular", "repairable", "linux"] },
+            { id: "galaxy", name: "Samsung Galaxy Book4 Pro", brand: "Samsung", prices: { amazon: 126990, flipkart: 124990, croma: 128990, reliance: 127490, tatacliq: 127100, vijaysales: 126490 }, specs: { cpu: "Core Ultra 7 155H", ram: "16GB", storage: "512GB", display: "14\" AMOLED", battery: "14 Hrs", weight: "1.23kg" }, useCases: ["creator", "office"], keywords: ["galaxy", "samsung", "amoled"] },
+            { id: "air", name: "Apple MacBook Air M3", brand: "Apple", prices: { amazon: 129900, flipkart: 127900, croma: 131900, reliance: 129900, tatacliq: 129490, vijaysales: 128900 }, specs: { cpu: "Apple M3", ram: "16GB Unified", storage: "512GB", display: "13.6\" Retina", battery: "18 Hrs", weight: "1.24kg" }, useCases: ["coding", "office"], keywords: ["macbook", "m3", "ios", "swift", "battery"] },
+            { id: "xps", name: "Dell XPS 13 (2024)", brand: "Dell", prices: { amazon: 138990, flipkart: 139990, croma: 136990, reliance: 137490, tatacliq: 138400, vijaysales: 137900 }, specs: { cpu: "Core Ultra 7 155H", ram: "16GB", storage: "512GB", display: "13.4\" FHD+", battery: "13 Hrs", weight: "1.19kg" }, useCases: ["office", "coding"], keywords: ["xps", "carbon", "borderless"] },
+            { id: "zephyrus", name: "ASUS ROG Zephyrus G14", brand: "ASUS", prices: { amazon: 147990, flipkart: 145990, croma: 149990, reliance: 148490, tatacliq: 147290, vijaysales: 146490 }, specs: { cpu: "Ryzen 7 8845HS", ram: "16GB", storage: "1TB", display: "14\" 3K OLED", battery: "8.5 Hrs", weight: "1.5kg" }, useCases: ["gaming", "creator", "coding"], keywords: ["zephyrus", "g14", "gpu", "render"] },
+            { id: "hp-omen", name: "HP Omen 16", brand: "HP", prices: { amazon: 123990, flipkart: 121990, croma: 124990, reliance: 122490, tatacliq: 123900, vijaysales: 123400 }, specs: { cpu: "i7-13700HX", ram: "16GB", storage: "1TB", display: "16.1\" QHD", battery: "5.5 Hrs", weight: "2.35kg" }, useCases: ["gaming", "creator", "coding"], keywords: ["omen", "rtx 4060", "ml", "gpu"] },
+            { id: "pro-14", name: "Apple MacBook Pro 14", brand: "Apple", prices: { amazon: 194900, flipkart: 191900, croma: 196900, reliance: 193900, tatacliq: 193490, vijaysales: 192900 }, specs: { cpu: "M3 Pro", ram: "18GB", storage: "512GB", display: "14.2\" XDR", battery: "18 Hrs", weight: "1.61kg" }, useCases: ["coding", "creator"], keywords: ["compile", "app dev", "docker"] },
+            { id: "razer", name: "Razer Blade 14", brand: "Razer", prices: { amazon: 247990, flipkart: 245990, croma: 249990, reliance: 248490, tatacliq: 247490, vijaysales: 246900 }, specs: { cpu: "Ryzen 9 7940HS", ram: "16GB", storage: "1TB", display: "14\" QHD+", battery: "7 Hrs", weight: "1.84kg" }, useCases: ["gaming", "creator"], keywords: ["razer", "blade", "rtx 4070"] },
+            { id: "pro-16", name: "Apple MacBook Pro 16", brand: "Apple", prices: { amazon: 339900, flipkart: 335900, croma: 342900, reliance: 341900, tatacliq: 338490, vijaysales: 337900 }, specs: { cpu: "M3 Max", ram: "36GB", storage: "1TB", display: "16.2\" XDR", battery: "22 Hrs", weight: "2.14kg" }, useCases: ["coding", "creator"], keywords: ["max", "ai", "ml", "docker", "compile"] }
+        ];
+        const meta = { amazon: { label: "Amazon", d: "2 days", o: "Flat ₹5k off SBI Cards", r: "4.5★" }, flipkart: { label: "Flipkart", d: "Tomorrow", o: "10% off ICICI Cards", r: "4.4★" }, croma: { label: "Croma", d: "3 days", o: "Flat ₹3k off HDFC", r: "4.2★" }, reliance: { label: "Reliance Digital", d: "1 day", o: "10% Cashback on OneCard", r: "4.3★" }, tatacliq: { label: "Tata CLIQ", d: "3 days", o: "Flat ₹2.5k off code CLIPTEN", r: "4.2★" }, vijaysales: { label: "Vijay Sales", d: "2 days", o: "Flat 10% off on AU Bank", r: "4.1★" } };
+        const fmt = v => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(v);
+        let ucase = "coding";
+        const getRating = (l, p) => {
+            if (p === "perf") return (l.specs.cpu.includes("Max") || l.specs.cpu.includes("Ryzen 9")) ? 10 : (l.specs.cpu.includes("Pro") || l.specs.cpu.includes("Ryzen 7") || l.specs.cpu.includes("13700") || l.specs.cpu.includes("Ultra 7")) ? 8.5 : (l.specs.cpu.includes("i5") || l.specs.cpu.includes("Ultra 5") || l.specs.cpu.includes("5600")) ? 7 : (l.specs.cpu.includes("M3") || l.specs.cpu.includes("M2")) ? 8 : 4.5;
+            if (p === "batt") { const hrs = parseInt(l.specs.battery) || 6; return hrs >= 20 ? 10 : hrs >= 15 ? 9 : hrs >= 10 ? 8 : hrs >= 8 ? 6.5 : 4.5; }
+            if (p === "port") { const wt = parseFloat(l.specs.weight) || 1.6; return wt < 1.3 ? 9.5 : wt < 1.6 ? 8 : wt < 2 ? 6.5 : 4; }
+            if (p === "disp") return (l.specs.display.includes("OLED") || l.specs.display.includes("XDR")) ? 10 : (l.specs.display.includes("Retina") || l.specs.display.includes("3K")) ? 8.5 : (l.specs.display.includes("3.2K") || l.specs.display.includes("WQHD")) ? 8 : 5.5;
+            return 7;
+        };
+        let selectedBrand = "no-pref";
+        let selectedPriority = "none";
+        const update = () => {
+            const budget = parseInt(document.getElementById('budget').value);
+            const brand = selectedBrand;
+            const priority = selectedPriority;
+            const search = document.getElementById('search').value.toLowerCase().trim();
+            const results = document.getElementById('results');
+            
+            let scored = catalog.map(l => {
+                const prices = Object.entries(l.prices);
+                const lowest = prices.reduce((m, c) => c[1] < m[1] ? c : m, prices[0]);
+                if (lowest[1] > budget * 1.15) return null;
+                let score = 0;
+                if (lowest[1] <= budget) score += 35;
+                else score -= (lowest[1] - budget) / 1000;
+                if (brand !== "no-pref" && l.brand.toLowerCase() === brand) score += 25;
+                if (l.useCases.includes(ucase)) score += 30;
+                if (priority !== "none") score += getRating(l, priority) * 5;
+                if (search) {
+                    const terms = search.split(/\s+/).filter(t => t.length > 0);
+                    let matched = 0;
+                    terms.forEach(t => {
+                        const targetStr = (l.name + ' ' + l.brand + ' ' + l.specs.cpu + ' ' + l.specs.ram + ' ' + l.specs.storage + ' ' + l.specs.display + ' ' + l.specs.battery + ' ' + l.specs.weight + ' ' + l.keywords.join(' ')).toLowerCase();
+                        if (targetStr.includes(t)) matched++;
+                    });
+                    if (matched === 0) return null;
+                    score += matched * 40;
+                }
+                return { l, score, lowestPrice: lowest[1], store: lowest[0] };
+            }).filter(i => i !== null).sort((a,b) => b.score - a.score);
+            results.innerHTML = scored.length === 0 ? `<div class="card" style="text-align:center;color:var(--text-sec)">No laptops within budget limit.</div>` : "";
+            scored.forEach((item, idx) => {
+                const rec = document.createElement('div');
+                rec.className = `card rec-card ${idx > 0 ? 'runner' : ''}`;
+                rec.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                        <h3>${item.l.name}</h3><span class="pill active" style="padding:0.25rem 0.5rem;font-size:0.65rem;">${idx === 0 ? 'Best Match' : 'Runner Up'}</span>
+                    </div>
+                    <div class="price-box">
+                        <div style="display:flex;justify-content:space-between;align-items:center;"><span>Lowest Price</span><span class="lowest-price">${fmt(item.lowestPrice)}</span></div>
+                        <div class="store-grid">
+                            ${Object.entries(item.l.prices).map(([st, pr]) => `
+                                <div class="store-pill ${st === item.store ? 'best' : ''}" onclick="openModal('${item.l.id}','${st}')">
+                                    <strong>${meta[st].label}</strong><span>₹${Math.round(pr/1000)}k</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                    <div class="specs">
+                        <div class="spec-item">CPU <span>${item.l.specs.cpu}</span></div><div class="spec-item">RAM <span>${item.l.specs.ram}</span></div><div class="spec-item">Storage <span>${item.l.specs.storage}</span></div><div class="spec-item">Display <span>${item.l.specs.display}</span></div><div class="spec-item">Battery <span>${item.l.specs.battery}</span></div><div class="spec-item">Weight <span>${item.l.specs.weight}</span></div>
+                    </div>`;
+                results.appendChild(rec);
+            });
+        };
+        const openModal = (id, st) => {
+            const laptop = catalog.find(l => l.id === id);
+            document.getElementById('m-store').textContent = meta[st].label;
+            document.getElementById('m-laptop').textContent = laptop.name;
+            document.getElementById('m-price').textContent = fmt(laptop.prices[st]);
+            document.getElementById('m-offer').textContent = meta[st].o;
+            document.getElementById('m-delivery').textContent = meta[st].d;
+            document.getElementById('m-rating').textContent = meta[st].r;
+            document.getElementById('modal').classList.add('active');
+        };
+        const closeModal = () => document.getElementById('modal').classList.remove('active');
+        document.getElementById('budget').addEventListener('input', e => { document.getElementById('budget-lbl').textContent = fmt(e.target.value); update(); });
+        document.getElementById('search').addEventListener('input', update);
+        document.querySelectorAll('#usecase-container .pill').forEach(p => p.addEventListener('click', () => { document.querySelectorAll('#usecase-container .pill').forEach(x => x.classList.remove('active')); p.classList.add('active'); ucase = p.getAttribute('data-value'); update(); }));
+        document.querySelectorAll('#brand-container .pill').forEach(p => p.addEventListener('click', () => {
+            document.querySelectorAll('#brand-container .pill').forEach(x => x.classList.remove('active')); p.classList.add('active');
+            selectedBrand = p.getAttribute('data-value'); update();
+        }));
+        document.querySelectorAll('#priority-container .pill').forEach(p => p.addEventListener('click', () => {
+            document.querySelectorAll('#priority-container .pill').forEach(x => x.classList.remove('active')); p.classList.add('active');
+            selectedPriority = p.getAttribute('data-value'); update();
+        }));
+        document.querySelectorAll('#quick-tags .tag-shortcut').forEach(t => t.addEventListener('click', () => {
+            t.classList.toggle('active');
+            document.getElementById('search').value = Array.from(document.querySelectorAll('#quick-tags .tag-shortcut.active')).map(x => x.getAttribute('data-value')).join(' ');
+            update();
+        }));
+        document.getElementById('sync-btn').addEventListener('click', () => {
+            catalog.forEach(l => Object.keys(l.prices).forEach(k => l.prices[k] = Math.round(l.prices[k] * (1 + (Math.random() - 0.5) * 0.01))));
+            update(); alert("Prices synced with live APIs!");
+        });
+        update();
+    </script>
+</body>
+</html>
+
